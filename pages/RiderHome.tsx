@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ApiService from '../services/api';
 import { Vehicle } from '../types';
 import { Button } from '../components/ui/Button';
@@ -12,6 +13,7 @@ export const RiderHome: React.FC = () => {
   const [searchResults, setSearchResults] = useState<Vehicle[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +125,7 @@ export const RiderHome: React.FC = () => {
                      <span className="text-lg font-bold text-slate-900">{vehicle.currency} {vehicle.price}</span>
                      <span className="text-xs text-slate-500"> / day</span>
                    </div>
-                   <Button size="sm" variant="primary">Details</Button>
+                   <Button size="sm" variant="primary" onClick={() => navigate(`/vehicle/${vehicle.id}`)}>Details</Button>
                  </div>
                </div>
              </div>

@@ -184,6 +184,20 @@ class ApiService {
 
     // --- Vehicle Endpoints ---
     if (endpoint.includes('/vehicle')) {
+        // GET /vehicle/:id
+        const vehicleIdMatch = endpoint.match(/\/vehicle\/([^\/?]+)/);
+        if (method === 'GET' && vehicleIdMatch) {
+             const vId = vehicleIdMatch[1];
+             if (vId === 'archive' || vId === 'status-summary' || vId === 'delete-drafts') {
+                 // handle other sub-resources if needed, for now ignore or implement specific mocks
+             } else {
+                 const vehicle = MOCK_VEHICLES.find(v => v.id === vId);
+                 if (vehicle) {
+                     return { vehicle_id: vehicle.id, vehicle: vehicle } as unknown as T;
+                 }
+             }
+        }
+
         // GET /vehicle (List)
         if (method === 'GET') {
             return { vehicles: MOCK_VEHICLES } as unknown as T;

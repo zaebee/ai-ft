@@ -5,6 +5,7 @@ import { Navbar } from './components/Navbar';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { RiderHome } from './pages/RiderHome';
+import { VehicleDetails } from './pages/VehicleDetails';
 import { RoleEnum } from './types';
 import { ROUTES } from './constants';
 
@@ -61,6 +62,8 @@ const App: React.FC = () => {
                 <RiderHome />
               } 
             />
+            
+            <Route path="/vehicle/:id" element={<VehicleDetails />} />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
