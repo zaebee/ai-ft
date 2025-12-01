@@ -12,20 +12,32 @@ import { ROUTES } from '../constants';
 
 interface ReservationFormProps {
   vehicle: Vehicle;
+  initialDateFrom?: string;
+  initialDateTo?: string;
 }
 
-export const ReservationForm: React.FC<ReservationFormProps> = ({ vehicle }) => {
+export const ReservationForm: React.FC<ReservationFormProps> = ({ 
+    vehicle, 
+    initialDateFrom = '', 
+    initialDateTo = '' 
+}) => {
   const { user, isAuthenticated } = useAuth();
   const { formatPrice, selectedCurrency, rates } = useCurrency();
   const navigate = useNavigate();
 
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom, setDateFrom] = useState(initialDateFrom);
+  const [dateTo, setDateTo] = useState(initialDateTo);
   const [timeFrom, setTimeFrom] = useState('10:00');
   const [timeTo, setTimeTo] = useState('10:00');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Update state if props change (e.g. navigation updates)
+  useEffect(() => {
+    if (initialDateFrom) setDateFrom(initialDateFrom);
+    if (initialDateTo) setDateTo(initialDateTo);
+  }, [initialDateFrom, initialDateTo]);
 
   // Calculate Duration
   const duration = React.useMemo(() => {

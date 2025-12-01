@@ -94,6 +94,17 @@ export const RiderHome: React.FC = () => {
     return formatPrice(total, currency);
   };
 
+  const handleDetailsClick = (vehicle: Vehicle) => {
+    const params = new URLSearchParams();
+    // Use the searched ownerId if vehicle doesn't have one explicitly (though it should)
+    const oId = vehicle.owner_id || debouncedOwnerId;
+    if (oId) params.append('owner_id', oId);
+    if (dateFrom) params.append('date_from', dateFrom);
+    if (dateTo) params.append('date_to', dateTo);
+    
+    navigate(`/vehicle/${vehicle.id}?${params.toString()}`);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
        {/* Hero Section */}
@@ -232,7 +243,7 @@ export const RiderHome: React.FC = () => {
                        </div>
                      )}
                    </div>
-                   <Button size="sm" onClick={() => navigate(`/vehicle/${vehicle.id}`)} className="px-5">
+                   <Button size="sm" onClick={() => handleDetailsClick(vehicle)} className="px-5">
                      Details
                    </Button>
                  </div>

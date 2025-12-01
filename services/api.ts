@@ -271,8 +271,18 @@ class ApiService {
     if (endpoint.includes('/rider/vehicles/') && endpoint.includes('/search')) {
        return { vehicles: MOCK_VEHICLES } as unknown as T;
     }
+    
+    // --- Single Vehicle for Rider ---
+    // GET /rider/vehicles/:owner_id/:vehicle_id
+    // This matches: /rider/vehicles/owner-1/v-1
+    const riderVehicleMatch = endpoint.match(/\/rider\/vehicles\/([^\/]+)\/([^\/?]+)/);
+    if (method === 'GET' && riderVehicleMatch && !endpoint.includes('/search')) {
+        const vId = riderVehicleMatch[2];
+        const vehicle = MOCK_VEHICLES.find(v => v.id === vId);
+        if (vehicle) return { vehicle } as unknown as T;
+    }
 
-    // --- Vehicle Endpoints ---
+    // --- Vehicle Endpoints (Owner/Admin) ---
     if (endpoint.includes('/vehicle')) {
         // GET /vehicle/:id
         const vehicleIdMatch = endpoint.match(/\/vehicle\/([^\/?]+)/);

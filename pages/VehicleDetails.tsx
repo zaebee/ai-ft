@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import ApiService from '../services/api';
 import { Vehicle } from '../types';
 import { Button } from '../components/ui/Button';
@@ -12,18 +12,41 @@ import { ReservationForm } from '../components/ReservationForm';
 
 export const VehicleDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { formatPrice, selectedCurrency, rates } = useCurrency();
+  
+  // Extract query params from search
+  const ownerId = searchParams.get('owner_id');
+  const dateFrom = searchParams.get('date_from');
+  const dateTo = searchParams.get('date_to');
 
   useEffect(() => {
     const fetchVehicle = async () => {
       if (!id) return;
       try {
-        const response = await ApiService.get<{ vehicle: Vehicle }>(`/vehicle/${id}`);
-        setVehicle(response.vehicle);
+        let response;
+        if (ownerId) {
+             // Use Rider-specific endpoint if we know the owner
+             // GET /rider/vehicles/{owner_id}/{vehicle_id}?date_from=...&date_to=...
+             response = await ApiService.get<{ vehicle: Vehicle }>(
+                 `/rider/vehicles/${ownerId}/${id}`, 
+                 { 
+                     ...(dateFrom ? { date_from: dateFrom } : {}),
+                     ...(dateTo ? { date_to: dateTo } : {})
+                 }
+             );
+        } else {
+             // Fallback for direct links or owner dashboard view
+             response = await ApiService.get<{ vehicle: Vehicle }>(`/vehicle/${id}`);
+        }
+        
+        // Handle potentially different response structures if API differs slightly
+        const v = response.vehicle || (response as any);
+        setVehicle(v);
       } catch (err) {
         console.error("Failed to fetch vehicle details", err);
         setError("Vehicle not found or an error occurred.");
@@ -33,7 +56,7 @@ export const VehicleDetails: React.FC = () => {
     };
 
     fetchVehicle();
-  }, [id]);
+  }, [id, ownerId, dateFrom, dateTo]);
 
   const getPriceDisplay = (v: Vehicle) => {
     const price = getVehicleRawPrice(v, selectedCurrency, rates);
@@ -85,9 +108,13 @@ export const VehicleDetails: React.FC = () => {
               </p>
             </div>
 
-            {/* Reservation Form */}
+            {/* Reservation Form - Initialized with dates from search */}
             <div className="mb-8">
-                <ReservationForm vehicle={vehicle} />
+                <ReservationForm 
+                    vehicle={vehicle} 
+                    initialDateFrom={dateFrom || ''} 
+                    initialDateTo={dateTo || ''}
+                />
             </div>
 
             <div className="border-t border-slate-200 pt-6">
