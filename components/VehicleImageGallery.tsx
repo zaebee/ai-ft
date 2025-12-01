@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Picture, ImagePreviews } from '../types';
 import { API_BASE_URL, MOCK_IMAGES } from '../constants';
@@ -10,19 +9,32 @@ interface VehicleImageGalleryProps {
 
 /**
  * Helper to resolve absolute URL from relative paths.
- * If the path starts with http, it is returned as is.
- * Otherwise, it joins with the API base URL (stripping /api/v1 if present for media).
+ * If the path starts with http/blob/data, it is returned as is.
+ * Otherwise, it resolves against the API base URL's origin.
  */
 const resolveUrl = (path?: string): string => {
   if (!path) return MOCK_IMAGES.CAR_PLACEHOLDER;
-  if (path.startsWith('http') || path.startsWith('blob:')) return path;
   
-  // Assuming media is served from the root host, not necessarily /api/v1
-  // If API_BASE_URL is http://localhost:8000/api/v1, media might be at http://localhost:8000/
-  const baseUrl = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  
-  return `${baseUrl}${cleanPath}`;
+  // Check for absolute URLs or special protocols
+  if (/^(http|https|blob|data):/.test(path)) {
+    return path;
+  }
+
+  // Ensure path starts with / for consistent appending
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+
+  try {
+    // Attempt to extract the origin (protocol + domain) from API_BASE_URL
+    // e.g. "http://localhost:8000/api/v1" -> "http://localhost:8000"
+    // This assumes static files are served from the root of the domain provided in API_BASE_URL
+    const urlObj = new URL(API_BASE_URL);
+    return `${urlObj.origin}${normalizedPath}`;
+  } catch (e) {
+    // Fallback if API_BASE_URL is relative (e.g. "/api/v1") or invalid URL
+    // We prepend the base URL directly, ensuring no double slashes
+    const cleanBase = API_BASE_URL.replace(/\/+$/, '');
+    return `${cleanBase}${normalizedPath}`;
+  }
 };
 
 /**
@@ -77,7 +89,9 @@ export const VehicleImageGallery: React.FC<VehicleImageGalleryProps> = ({ pictur
     return items;
   }, [picture]);
 
-  const currentImage = images[selectedImageIndex];
+  // Ensure selection index is valid (in case props change)
+  const safeIndex = selectedImageIndex < images.length ? selectedImageIndex : 0;
+  const currentImage = images[safeIndex];
 
   return (
     <div className="space-y-4">
@@ -87,7 +101,7 @@ export const VehicleImageGallery: React.FC<VehicleImageGalleryProps> = ({ pictur
           src={resolveUrl(currentImage.src)}
           srcSet={generateSrcSet(currentImage.previews)}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 800px"
-          alt={`${altText} - View ${selectedImageIndex + 1}`}
+          alt={`${altText} - View ${safeIndex + 1}`}
           className="h-full w-full object-cover transition-opacity duration-300"
         />
       </div>
@@ -98,9 +112,10 @@ export const VehicleImageGallery: React.FC<VehicleImageGalleryProps> = ({ pictur
           {images.map((img, idx) => (
             <button
               key={`${img.src}-${idx}`}
+              type="button"
               onClick={() => setSelectedImageIndex(idx)}
               className={`relative h-20 w-20 flex-shrink-0 cursor-pointer overflow-hidden rounded-lg border-2 transition-all ${
-                selectedImageIndex === idx 
+                safeIndex === idx 
                   ? 'border-blue-600 ring-2 ring-blue-100' 
                   : 'border-transparent opacity-70 hover:opacity-100'
               }`}
