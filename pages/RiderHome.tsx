@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ApiService from '../services/api';
 import { Vehicle } from '../types';
@@ -9,14 +9,37 @@ import { resolveImageUrl } from '../utils/image';
 import { getVehicleCurrency, calculatePriceValue } from '../utils/price';
 import { useCurrency } from '../context/CurrencyContext';
 
+// Custom hook for debouncing values
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 export const RiderHome: React.FC = () => {
   const [location, setLocation] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [ownerId, setOwnerId] = useState('owner-1');
+  
+  // Debounce search inputs to prevent API spam while typing
+  const debouncedLocation = useDebounce(location, 800);
+  const debouncedOwnerId = useDebounce(ownerId, 800);
+
   const [searchResults, setSearchResults] = useState<Vehicle[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
   const navigate = useNavigate();
   const { formatPrice, selectedCurrency, rates } = useCurrency();
 
@@ -35,20 +58,34 @@ export const RiderHome: React.FC = () => {
     return diffDays > 0 ? diffDays : 0;
   }, [dateFrom, dateTo]);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const fetchVehicles = useCallback(async () => {
     setIsLoading(true);
-    setHasSearched(true);
-    
+    // Don't mark as "hasSearched" until we actually get results or valid search attempt
+    if (!debouncedOwnerId) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
-        const response = await ApiService.get<{ vehicles: Vehicle[] }>(`/rider/vehicles/${ownerId}/search`, { location });
+        const response = await ApiService.get<{ vehicles: Vehicle[] }>(`/rider/vehicles/${debouncedOwnerId}/search`, { location: debouncedLocation });
         setSearchResults(response.vehicles || []);
+        setHasSearched(true);
     } catch (error) {
         console.error("Search failed", error);
         setSearchResults([]); 
     } finally {
         setIsLoading(false);
     }
+  }, [debouncedOwnerId, debouncedLocation]);
+
+  // Trigger search when debounced values or dates change
+  useEffect(() => {
+    fetchVehicles();
+  }, [fetchVehicles, dateFrom, dateTo]);
+
+  const handleManualSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchVehicles();
   };
 
   const getDisplayPrice = (vehicle: Vehicle, days: number = 1) => {
@@ -79,7 +116,7 @@ export const RiderHome: React.FC = () => {
            </div>
            
            <div className="mt-10 mx-auto max-w-5xl rounded-2xl bg-white p-2 shadow-xl">
-             <form onSubmit={handleSearch} className="flex flex-col gap-2 md:flex-row md:items-end">
+             <form onSubmit={handleManualSearch} className="flex flex-col gap-2 md:flex-row md:items-end">
                <div className="flex-1 px-2 pb-2">
                  <Input 
                    label="Owner ID (Dev)" 
@@ -140,49 +177,64 @@ export const RiderHome: React.FC = () => {
          
          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
            {searchResults.map((vehicle) => (
-             <div key={vehicle.id} className="group flex flex-col overflow-hidden rounded-lg bg-white shadow-sm border border-slate-200 transition-all hover:shadow-md hover:-translate-y-1">
-               <div className="aspect-[3/2] overflow-hidden bg-slate-100 relative">
+             <div key={vehicle.id} className="group flex flex-col overflow-hidden rounded-xl bg-white shadow-sm border border-slate-200 transition-all hover:shadow-md hover:border-blue-200">
+               {/* Image Section */}
+               <div className="aspect-[16/10] overflow-hidden bg-slate-100 relative">
                  <img 
                    src={resolveImageUrl(vehicle.picture?.cover)} 
                    alt={vehicle.name} 
-                   className="h-full w-full object-cover"
+                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                  />
-                 <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-2 py-1 rounded text-xs font-semibold">
-                   {vehicle.general_info?.year}
+                 <div className="absolute top-3 left-3">
+                    <span className="inline-flex items-center rounded-md bg-white/90 backdrop-blur-sm px-2.5 py-1 text-xs font-bold text-slate-900 shadow-sm">
+                      {vehicle.general_info?.year || 'N/A'}
+                    </span>
                  </div>
                </div>
-               <div className="flex flex-1 flex-col p-4">
+
+               {/* Content Section */}
+               <div className="flex flex-1 flex-col p-5">
                  <div className="flex-1">
-                   <h3 className="text-base font-semibold text-slate-900">
+                   <h3 className="text-lg font-bold text-slate-900 leading-tight">
                      {vehicle.name}
                    </h3>
-                   <p className="mt-1 text-sm text-slate-500 line-clamp-2">
-                     {vehicle.specification_info?.transmission || 'Automatic'} • {vehicle.specification_info?.fuel_type || 'Gasoline'}
-                   </p>
+                   
+                   {/* Specs Row */}
+                   <div className="mt-3 flex flex-wrap gap-2">
+                     <span className="inline-flex items-center rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
+                       {vehicle.specification_info?.transmission || 'Auto'}
+                     </span>
+                     <span className="inline-flex items-center rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
+                       {vehicle.specification_info?.fuel_type || 'Gasoline'}
+                     </span>
+                     <span className="inline-flex items-center rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
+                       {vehicle.specification_info?.number_of_seats || 5} Seats
+                     </span>
+                   </div>
                  </div>
-                 <div className="mt-4 flex items-center justify-between">
+
+                 {/* Price & Action */}
+                 <div className="mt-5 flex items-end justify-between border-t border-slate-100 pt-4">
                    <div>
                      {searchDuration > 0 ? (
-                       // Show Total Price
                        <div className="flex flex-col">
-                         <span className="text-lg font-bold text-slate-900">
+                         <span className="text-xs font-medium text-slate-500 mb-0.5">Total for {searchDuration} days</span>
+                         <span className="text-xl font-bold text-blue-600">
                            {getDisplayPrice(vehicle, searchDuration)}
-                         </span>
-                         <span className="text-xs text-slate-500">
-                           total for {searchDuration} days
                          </span>
                        </div>
                      ) : (
-                       // Show Daily Rate
-                       <div>
-                         <span className="text-lg font-bold text-slate-900">
+                       <div className="flex flex-col">
+                         <span className="text-xs font-medium text-slate-500 mb-0.5">Daily Rate</span>
+                         <span className="text-xl font-bold text-slate-900">
                            {getDisplayPrice(vehicle, 1)}
                          </span>
-                         <span className="text-xs text-slate-500"> / day</span>
                        </div>
                      )}
                    </div>
-                   <Button size="sm" variant="primary" onClick={() => navigate(`/vehicle/${vehicle.id}`)}>Details</Button>
+                   <Button size="sm" onClick={() => navigate(`/vehicle/${vehicle.id}`)} className="px-5">
+                     Details
+                   </Button>
                  </div>
                </div>
              </div>
