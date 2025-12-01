@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ApiService from '../services/api';
@@ -6,7 +5,7 @@ import { Vehicle } from '../types';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { resolveImageUrl } from '../utils/image';
-import { getVehicleRawPrice, getVehicleCurrency, calculatePriceValue } from '../utils/price';
+import { getVehicleCurrency, calculatePriceValue } from '../utils/price';
 import { useCurrency } from '../context/CurrencyContext';
 
 export const RiderHome: React.FC = () => {
@@ -18,7 +17,7 @@ export const RiderHome: React.FC = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { formatPrice } = useCurrency();
+  const { formatPrice, selectedCurrency } = useCurrency();
 
   // Calculate duration in days
   const searchDuration = useMemo(() => {
@@ -52,8 +51,8 @@ export const RiderHome: React.FC = () => {
   };
 
   const getDisplayPrice = (vehicle: Vehicle, days: number = 1) => {
-    const total = calculatePriceValue(vehicle, days);
-    const currency = getVehicleCurrency(vehicle);
+    const total = calculatePriceValue(vehicle, days, selectedCurrency);
+    const currency = getVehicleCurrency(vehicle, selectedCurrency);
     return formatPrice(total, currency);
   };
 

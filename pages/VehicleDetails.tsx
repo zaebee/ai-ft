@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ApiService from '../services/api';
@@ -15,7 +14,7 @@ export const VehicleDetails: React.FC = () => {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { formatPrice } = useCurrency();
+  const { formatPrice, selectedCurrency } = useCurrency();
 
   useEffect(() => {
     const fetchVehicle = async () => {
@@ -35,8 +34,8 @@ export const VehicleDetails: React.FC = () => {
   }, [id]);
 
   const getPriceDisplay = (v: Vehicle) => {
-    const price = getVehicleRawPrice(v);
-    const currency = getVehicleCurrency(v);
+    const price = getVehicleRawPrice(v, selectedCurrency);
+    const currency = getVehicleCurrency(v, selectedCurrency);
     return formatPrice(price, currency);
   };
 

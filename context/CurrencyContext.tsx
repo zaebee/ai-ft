@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import ApiService from '../services/api';
 import { Currency } from '../types';
@@ -6,6 +5,8 @@ import { Currency } from '../types';
 interface CurrencyContextType {
   currencies: Currency[];
   isLoading: boolean;
+  selectedCurrency: string;
+  setCurrency: (code: string) => void;
   formatPrice: (amount: number, currencyCode: string) => string;
   getSymbol: (currencyCode: string) => string;
 }
@@ -15,6 +16,9 @@ const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [selectedCurrency, setSelectedCurrency] = useState<string>(() => {
+    return localStorage.getItem('user_currency') || 'USD';
+  });
 
   useEffect(() => {
     const fetchCurrencies = async () => {
@@ -29,6 +33,11 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     fetchCurrencies();
   }, []);
+
+  const setCurrency = (code: string) => {
+    setSelectedCurrency(code);
+    localStorage.setItem('user_currency', code);
+  };
 
   const parseSymbol = useCallback((symbolString: string): string => {
     if (symbolString.startsWith('U+')) {
@@ -63,13 +72,18 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       maximumFractionDigits: 2
     });
     
-    // Some symbols might prefer to be suffixes, but typical standard is prefix for most in the list ($, €, £, ฿)
-    // VND usually has suffix ₫ but we can stick to prefix or space for consistency unless using full Intl
     return `${symbol} ${formattedAmount}`.trim();
   }, [getSymbol]);
 
   return (
-    <CurrencyContext.Provider value={{ currencies, isLoading, formatPrice, getSymbol }}>
+    <CurrencyContext.Provider value={{ 
+      currencies, 
+      isLoading, 
+      selectedCurrency, 
+      setCurrency, 
+      formatPrice, 
+      getSymbol 
+    }}>
       {children}
     </CurrencyContext.Provider>
   );

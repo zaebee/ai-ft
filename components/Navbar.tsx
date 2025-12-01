@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
+import { CurrencySwitcher } from './CurrencySwitcher';
 import { ROUTES } from '../constants';
 import { RoleEnum } from '../types';
 
@@ -46,6 +47,9 @@ export const Navbar: React.FC = () => {
                   </Link>
                )}
               <div className="h-4 w-px bg-slate-300"></div>
+              
+              <CurrencySwitcher />
+              
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium text-slate-700">
                   {user?.full_name || user?.email}
@@ -57,6 +61,8 @@ export const Navbar: React.FC = () => {
             </>
           ) : (
             <div className="flex items-center gap-3">
+              <CurrencySwitcher />
+              <div className="h-4 w-px bg-slate-300"></div>
               <Link to={ROUTES.LOGIN}>
                 <Button variant="ghost" size="sm">Sign In</Button>
               </Link>
@@ -82,6 +88,10 @@ export const Navbar: React.FC = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-slate-200 bg-white p-4">
           <div className="flex flex-col gap-4">
+             <div className="flex justify-between items-center">
+               <span className="text-sm font-medium text-slate-600">Currency</span>
+               <CurrencySwitcher />
+             </div>
              {isAuthenticated ? (
                <>
                  <div className="flex flex-col gap-2">
