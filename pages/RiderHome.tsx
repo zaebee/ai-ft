@@ -4,7 +4,7 @@ import ApiService from '../services/api';
 import { Vehicle } from '../types';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { MOCK_IMAGES } from '../constants';
+import { resolveImageUrl } from '../utils/image';
 
 export const RiderHome: React.FC = () => {
   const [location, setLocation] = useState('');
@@ -103,7 +103,7 @@ export const RiderHome: React.FC = () => {
              <div key={vehicle.id} className="group flex flex-col overflow-hidden rounded-lg bg-white shadow-sm border border-slate-200 transition-all hover:shadow-md hover:-translate-y-1">
                <div className="aspect-[3/2] overflow-hidden bg-slate-100 relative">
                  <img 
-                   src={vehicle.picture?.cover || MOCK_IMAGES.CAR_PLACEHOLDER} 
+                   src={resolveImageUrl(vehicle.picture?.cover)} 
                    alt={vehicle.name} 
                    className="h-full w-full object-cover"
                  />

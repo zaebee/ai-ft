@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ApiService from '../services/api';
 import { Vehicle, VehicleStatus } from '../types';
 import { Button } from '../components/ui/Button';
-import { MOCK_IMAGES } from '../constants';
+import { resolveImageUrl } from '../utils/image';
 
 export const Dashboard: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -63,7 +63,7 @@ export const Dashboard: React.FC = () => {
             <div key={vehicle.id} className="group overflow-hidden rounded-xl bg-white shadow-sm border border-slate-200 transition-all hover:shadow-md">
               <div className="relative aspect-video w-full overflow-hidden bg-slate-100">
                 <img 
-                  src={vehicle.picture?.cover || MOCK_IMAGES.CAR_PLACEHOLDER} 
+                  src={resolveImageUrl(vehicle.picture?.cover)} 
                   alt={vehicle.name} 
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
