@@ -1,6 +1,6 @@
 
 import { API_BASE_URL } from '../constants';
-import { Token, UserPublic, RoleEnum, Vehicle, VehicleStatus, Currency } from '../types';
+import { Token, UserPublic, RoleEnum, Vehicle, VehicleStatus, Currency, PriceConversion } from '../types';
 
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -22,6 +22,32 @@ const MOCK_CURRENCIES: Currency[] = [
   { currency: "IDR", symbol: "U+20A6", name: "Indonesian Rupiah" }
 ];
 
+// Helper to generate conversions for mock data
+const generateMockConversions = (basePrice: number): Record<string, PriceConversion> => {
+  const rates: Record<string, number> = {
+    USD: 1,
+    EUR: 0.92,
+    GBP: 0.79,
+    RUB: 92.5,
+    THB: 35.5,
+    VND: 24500,
+    IDR: 15600
+  };
+
+  const conversions: Record<string, PriceConversion> = {};
+  
+  Object.keys(rates).forEach(code => {
+    conversions[code] = {
+      amount: Math.round(basePrice * rates[code]),
+      currency: code,
+      rate: rates[code],
+      valid_until: new Date(Date.now() + 86400000).toISOString()
+    };
+  });
+  
+  return conversions;
+};
+
 const MOCK_VEHICLES: Vehicle[] = [
   {
     id: 'v-1',
@@ -31,8 +57,8 @@ const MOCK_VEHICLES: Vehicle[] = [
     price: 120,
     currency: 'USD',
     minimal_price: 120,
-    price_conversions: { USD: { amount: 120, currency: 'USD', rate: 1, valid_until: '' } },
-    minimal_price_conversions: { USD: { amount: 120, currency: 'USD', rate: 1, valid_until: '' } },
+    price_conversions: generateMockConversions(120),
+    minimal_price_conversions: generateMockConversions(120),
     picture: { 
       cover: 'https://images.unsplash.com/photo-1536700503339-1e4b06520771?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       cover_previews: {
@@ -64,8 +90,8 @@ const MOCK_VEHICLES: Vehicle[] = [
     price: 350,
     currency: 'USD',
     minimal_price: 350,
-    price_conversions: { USD: { amount: 350, currency: 'USD', rate: 1, valid_until: '' } },
-    minimal_price_conversions: { USD: { amount: 350, currency: 'USD', rate: 1, valid_until: '' } },
+    price_conversions: generateMockConversions(350),
+    minimal_price_conversions: generateMockConversions(350),
     picture: { 
       cover: 'https://images.unsplash.com/photo-1503376763036-066120622c74?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' 
     },
@@ -80,8 +106,8 @@ const MOCK_VEHICLES: Vehicle[] = [
     price: 200,
     currency: 'USD',
     minimal_price: 200,
-    price_conversions: { USD: { amount: 200, currency: 'USD', rate: 1, valid_until: '' } },
-    minimal_price_conversions: { USD: { amount: 200, currency: 'USD', rate: 1, valid_until: '' } },
+    price_conversions: generateMockConversions(200),
+    minimal_price_conversions: generateMockConversions(200),
     picture: { 
       cover: 'https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' 
     },
@@ -96,8 +122,8 @@ const MOCK_VEHICLES: Vehicle[] = [
     price: 450,
     currency: 'USD',
     minimal_price: 450,
-    price_conversions: { USD: { amount: 450, currency: 'USD', rate: 1, valid_until: '' } },
-    minimal_price_conversions: { USD: { amount: 450, currency: 'USD', rate: 1, valid_until: '' } },
+    price_conversions: generateMockConversions(450),
+    minimal_price_conversions: generateMockConversions(450),
     picture: { 
       cover: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' 
     },
@@ -112,8 +138,8 @@ const MOCK_VEHICLES: Vehicle[] = [
     price: 280,
     currency: 'USD',
     minimal_price: 280,
-    price_conversions: { USD: { amount: 280, currency: 'USD', rate: 1, valid_until: '' } },
-    minimal_price_conversions: { USD: { amount: 280, currency: 'USD', rate: 1, valid_until: '' } },
+    price_conversions: generateMockConversions(280),
+    minimal_price_conversions: generateMockConversions(280),
     picture: { 
       cover: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' 
     },
@@ -266,6 +292,24 @@ class ApiService {
                  vehicle_id: 'v-new-' + Date.now(),
                  vehicle: { ...MOCK_VEHICLES[0], id: 'v-new-' + Date.now(), name: 'New Vehicle' }
              } as unknown as T;
+        }
+    }
+
+    // --- Reservations ---
+    if (endpoint.includes('/rider/reservations')) {
+        if (method === 'POST') {
+            // Mock successful reservation creation
+            return {
+                reservation_id: `res-${Date.now()}`,
+                reservation: {
+                    id: `res-${Date.now()}`,
+                    vehicle_id: body.vehicle_id,
+                    date_from: body.date_from,
+                    date_to: body.date_to,
+                    total_price: 1000, // Dummy total
+                    status: 0 // Created
+                }
+            } as unknown as T;
         }
     }
 
