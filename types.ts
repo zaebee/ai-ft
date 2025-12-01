@@ -130,3 +130,23 @@ export interface LoginResponse extends Token {}
 export interface ApiError {
   detail: string | Array<{ msg: string; loc: any[] }>;
 }
+
+export enum ExtraOptionPriceType {
+  PER_RENTAL = 0,
+  PER_DAY = 1
+}
+
+export interface ExtraOption {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  currency: string; // The currency this price is defined in
+  price_type: ExtraOptionPriceType;
+  owner_id: string;
+  vehicle_ids?: string[];
+}
+
+export interface ListExtraOptionsResponse {
+  extra_options: ExtraOption[];
+}

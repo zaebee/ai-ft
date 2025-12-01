@@ -1,6 +1,6 @@
 
 import { API_BASE_URL } from '../constants';
-import { Token, UserPublic, RoleEnum, Vehicle, VehicleStatus, Currency, PriceConversion, Rate, RateResponse } from '../types';
+import { Token, UserPublic, RoleEnum, Vehicle, VehicleStatus, Currency, PriceConversion, Rate, RateResponse, ExtraOption, ExtraOptionPriceType } from '../types';
 
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -30,6 +30,13 @@ const MOCK_RATES: Rate[] = [
   { base_currency: "USD", target_currency: "VND", rate: 26370.7, inverse_rate: 0.00003, timestamp: new Date().toISOString(), symbol: "U+20AB", name: "Vietnamese Dong" },
   { base_currency: "USD", target_currency: "RUB", rate: 77.6747, inverse_rate: 0.01287, timestamp: new Date().toISOString(), symbol: "U+20BD", name: "Russian Ruble" },
   { base_currency: "EUR", target_currency: "USD", rate: 1.1578, inverse_rate: 0.86369, timestamp: new Date().toISOString(), symbol: "U+0024", name: "US Dollar" }
+];
+
+const MOCK_EXTRA_OPTIONS: ExtraOption[] = [
+  { id: 'eo-1', name: 'Child Seat', description: 'Safe and comfortable seat for toddlers.', price: 10, currency: 'USD', price_type: ExtraOptionPriceType.PER_RENTAL, owner_id: 'owner-1', vehicle_ids: ['v-1', 'v-2', 'v-3', 'v-5'] },
+  { id: 'eo-2', name: 'GPS Navigation', description: 'Updated maps for local navigation.', price: 5, currency: 'USD', price_type: ExtraOptionPriceType.PER_DAY, owner_id: 'owner-1', vehicle_ids: ['v-1', 'v-3'] },
+  { id: 'eo-3', name: 'Full Insurance', description: 'Zero deductible coverage.', price: 25, currency: 'USD', price_type: ExtraOptionPriceType.PER_DAY, owner_id: 'owner-1', vehicle_ids: ['v-1', 'v-2', 'v-3', 'v-5'] },
+  { id: 'eo-4', name: 'Cooler Box', description: 'Keep your drinks cold.', price: 15, currency: 'USD', price_type: ExtraOptionPriceType.PER_RENTAL, owner_id: 'owner-2', vehicle_ids: ['v-4'] }
 ];
 
 // Helper to generate conversions for mock data
@@ -265,6 +272,18 @@ class ApiService {
     }
     if (endpoint.includes('/utils/rates/')) {
         return { rates: MOCK_RATES } as unknown as T;
+    }
+
+    // --- Extra Options Endpoint ---
+    if (endpoint.includes('/extra_option')) {
+      const url = new URL('http://dummy' + endpoint);
+      const vehicleId = url.searchParams.get('vehicle_id');
+      
+      let options = MOCK_EXTRA_OPTIONS;
+      if (vehicleId) {
+          options = options.filter(eo => eo.vehicle_ids?.includes(vehicleId));
+      }
+      return { extra_options: options } as unknown as T;
     }
 
     // --- Vehicle Search for Rider (Specific) ---

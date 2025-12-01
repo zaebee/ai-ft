@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { Vehicle, CreateReservationRequest } from '../types';
+import { Vehicle, CreateReservationRequest, ExtraOption, ListExtraOptionsResponse, ExtraOptionPriceType } from '../types';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import ApiService from '../services/api';
-import { calculatePriceValue, getVehicleCurrency } from '../utils/price';
+import { calculatePriceValue, getVehicleCurrency, convertCurrency } from '../utils/price';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants';
 
@@ -32,12 +32,33 @@ export const ReservationForm: React.FC<ReservationFormProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  
+  // Extra Options State
+  const [extraOptions, setExtraOptions] = useState<ExtraOption[]>([]);
+  const [selectedExtraIds, setSelectedExtraIds] = useState<string[]>([]);
+  const [extrasLoading, setExtrasLoading] = useState(false);
 
   // Update state if props change (e.g. navigation updates)
   useEffect(() => {
     if (initialDateFrom) setDateFrom(initialDateFrom);
     if (initialDateTo) setDateTo(initialDateTo);
   }, [initialDateFrom, initialDateTo]);
+
+  // Fetch extra options
+  useEffect(() => {
+    const fetchExtras = async () => {
+        setExtrasLoading(true);
+        try {
+            const response = await ApiService.get<ListExtraOptionsResponse>(`/extra_option`, { vehicle_id: vehicle.id });
+            setExtraOptions(response.extra_options || []);
+        } catch (e) {
+            console.warn("Failed to fetch extra options", e);
+        } finally {
+            setExtrasLoading(false);
+        }
+    };
+    fetchExtras();
+  }, [vehicle.id]);
 
   // Calculate Duration
   const duration = React.useMemo(() => {
@@ -49,21 +70,46 @@ export const ReservationForm: React.FC<ReservationFormProps> = ({
     return diffDays > 0 ? diffDays : 0;
   }, [dateFrom, dateTo]);
 
-  // Calculate Price
-  const totalPrice = React.useMemo(() => {
+  // Calculate Vehicle Base Price
+  const vehicleBasePrice = React.useMemo(() => {
     return calculatePriceValue(vehicle, duration, selectedCurrency, rates);
   }, [vehicle, duration, selectedCurrency, rates]);
+
+  // Calculate Extras Price
+  const extrasPrice = React.useMemo(() => {
+      return selectedExtraIds.reduce((total, id) => {
+          const option = extraOptions.find(opt => opt.id === id);
+          if (!option) return total;
+
+          // Convert price to user selected currency
+          const convertedPrice = convertCurrency(option.price, option.currency, selectedCurrency, rates);
+          
+          if (option.price_type === ExtraOptionPriceType.PER_DAY) {
+              return total + (convertedPrice * Math.max(duration, 1));
+          } else {
+              // Flat rate per rental
+              return total + convertedPrice;
+          }
+      }, 0);
+  }, [selectedExtraIds, extraOptions, duration, selectedCurrency, rates]);
+
+  const totalPrice = vehicleBasePrice + extrasPrice;
 
   const currencyCode = React.useMemo(() => {
       return getVehicleCurrency(vehicle, selectedCurrency, rates);
   }, [vehicle, selectedCurrency, rates]);
+
+  const toggleExtra = (id: string) => {
+      setSelectedExtraIds(prev => 
+          prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+      );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     if (!isAuthenticated) {
-        // In a real app, redirect to login with return_url
         if (confirm("You need to sign in to make a reservation. Go to login?")) {
             navigate(ROUTES.LOGIN);
         }
@@ -85,7 +131,7 @@ export const ReservationForm: React.FC<ReservationFormProps> = ({
             date_to: new Date(`${dateTo}T${timeTo}`).toISOString(),
             pick_up_time: timeFrom,
             drop_off_time: timeTo,
-            selected_extra_options: { ids: [] } // Support extras later
+            selected_extra_options: { ids: selectedExtraIds }
         };
 
         await ApiService.post('/rider/reservations', payload);
@@ -132,12 +178,55 @@ export const ReservationForm: React.FC<ReservationFormProps> = ({
                 <Input type="time" value={timeTo} onChange={e => setTimeTo(e.target.value)} required />
             </div>
         </div>
+        
+        {/* Extra Options Section */}
+        {extraOptions.length > 0 && (
+            <div className="border-t border-slate-100 pt-4 mt-2">
+                <h4 className="text-sm font-semibold text-slate-900 mb-3">Extra Options</h4>
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {extraOptions.map(option => {
+                        const convertedPrice = convertCurrency(option.price, option.currency, selectedCurrency, rates);
+                        const isDaily = option.price_type === ExtraOptionPriceType.PER_DAY;
+                        
+                        return (
+                            <div key={option.id} className="flex items-start gap-2 p-2 rounded hover:bg-slate-50 border border-transparent hover:border-slate-100">
+                                <input 
+                                    type="checkbox" 
+                                    id={`extra-${option.id}`}
+                                    checked={selectedExtraIds.includes(option.id)}
+                                    onChange={() => toggleExtra(option.id)}
+                                    className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor={`extra-${option.id}`} className="flex-1 text-sm cursor-pointer select-none">
+                                    <div className="flex justify-between">
+                                        <span className="font-medium text-slate-900">{option.name}</span>
+                                        <span className="text-slate-600">
+                                            +{formatPrice(convertedPrice, currencyCode)}
+                                            {isDaily ? <span className="text-xs text-slate-400">/day</span> : <span className="text-xs text-slate-400"> flat</span>}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-slate-500 line-clamp-1">{option.description}</p>
+                                </label>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        )}
 
         {duration > 0 && (
-            <div className="rounded-lg bg-slate-50 p-4">
-                <div className="flex justify-between text-sm text-slate-600 mb-2">
-                    <span>{formatPrice(calculatePriceValue(vehicle, 1, selectedCurrency, rates), currencyCode)} x {duration} days</span>
-                    <span>{formatPrice(totalPrice, currencyCode)}</span>
+            <div className="rounded-lg bg-slate-50 p-4 mt-4">
+                <div className="space-y-1 mb-2">
+                    <div className="flex justify-between text-sm text-slate-600">
+                        <span>Vehicle rental ({duration} days)</span>
+                        <span>{formatPrice(vehicleBasePrice, currencyCode)}</span>
+                    </div>
+                    {extrasPrice > 0 && (
+                        <div className="flex justify-between text-sm text-slate-600">
+                            <span>Selected Extras</span>
+                            <span>{formatPrice(extrasPrice, currencyCode)}</span>
+                        </div>
+                    )}
                 </div>
                 <div className="border-t border-slate-200 pt-2 flex justify-between font-bold text-slate-900">
                     <span>Total</span>

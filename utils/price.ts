@@ -26,20 +26,33 @@ export const getVehicleRawPrice = (vehicle: Vehicle, targetCurrency?: string, ra
 
     // 2. Try client-side conversion using global rates
     if (rates) {
-        const rateObj = rates.find(r => r.base_currency === baseCurrency && r.target_currency === targetCurrency);
-        if (rateObj) {
-            return basePrice * rateObj.rate;
-        }
-        // Try inverse
-        const inverseRateObj = rates.find(r => r.base_currency === targetCurrency && r.target_currency === baseCurrency);
-        if (inverseRateObj) {
-            return basePrice * inverseRateObj.inverse_rate;
-        }
+        return convertCurrency(basePrice, baseCurrency, targetCurrency, rates);
     }
   }
 
   // Fallback to base price
   return basePrice;
+};
+
+/**
+ * Helper to convert a specific amount between currencies using available rates.
+ */
+export const convertCurrency = (amount: number, baseCurrency: string, targetCurrency: string, rates: Rate[]): number => {
+  if (baseCurrency === targetCurrency) return amount;
+
+  const rateObj = rates.find(r => r.base_currency === baseCurrency && r.target_currency === targetCurrency);
+  if (rateObj) {
+      return amount * rateObj.rate;
+  }
+  
+  // Try inverse
+  const inverseRateObj = rates.find(r => r.base_currency === targetCurrency && r.target_currency === baseCurrency);
+  if (inverseRateObj) {
+      return amount * inverseRateObj.inverse_rate;
+  }
+
+  // If no direct rate, return original (or handling cross-rates could be added here)
+  return amount;
 };
 
 /**
