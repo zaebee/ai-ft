@@ -44,16 +44,22 @@ export const VehicleAvailabilityCalendar: React.FC<VehicleAvailabilityCalendarPr
 
   useEffect(() => {
     const fetchAvailability = async () => {
-      // In a real app, we might pass year/month filters. 
-      // For now, fetching general future availability.
       if (!ownerId && !vehicleId) return;
       
       setIsLoading(true);
       try {
         const oId = ownerId || 'owner-1'; // Fallback
+        
+        // Calculate range based on current view
+        const firstDay = new Date(calendarData.year, calendarData.month, 1);
+        const lastDay = new Date(calendarData.year, calendarData.month + 1, 0); // Last day of month
+
         const response = await ApiService.post<AvailabilityResponse>(
            `/rider/vehicles/${oId}/${vehicleId}/availability`, 
-           { date_from: new Date().toISOString() } // simplified body
+           { 
+             date_from: firstDay.toISOString(),
+             date_to: lastDay.toISOString()
+           }
         );
         setBlockedDates(response.blocked_dates || []);
       } catch (e) {
@@ -64,7 +70,7 @@ export const VehicleAvailabilityCalendar: React.FC<VehicleAvailabilityCalendarPr
     };
 
     fetchAvailability();
-  }, [vehicleId, ownerId, currentDate]); 
+  }, [vehicleId, ownerId, calendarData.year, calendarData.month]); 
 
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
