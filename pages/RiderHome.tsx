@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ApiService from '../services/api';
@@ -5,7 +6,8 @@ import { Vehicle } from '../types';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { resolveImageUrl } from '../utils/image';
-import { formatVehiclePrice, getVehicleRawPrice, getVehicleCurrency } from '../utils/price';
+import { getVehicleRawPrice, getVehicleCurrency, calculatePriceValue } from '../utils/price';
+import { useCurrency } from '../context/CurrencyContext';
 
 export const RiderHome: React.FC = () => {
   const [location, setLocation] = useState('');
@@ -16,6 +18,7 @@ export const RiderHome: React.FC = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { formatPrice } = useCurrency();
 
   // Calculate duration in days
   const searchDuration = useMemo(() => {
@@ -46,6 +49,12 @@ export const RiderHome: React.FC = () => {
     } finally {
         setIsLoading(false);
     }
+  };
+
+  const getDisplayPrice = (vehicle: Vehicle, days: number = 1) => {
+    const total = calculatePriceValue(vehicle, days);
+    const currency = getVehicleCurrency(vehicle);
+    return formatPrice(total, currency);
   };
 
   return (
@@ -157,7 +166,7 @@ export const RiderHome: React.FC = () => {
                        // Show Total Price
                        <div className="flex flex-col">
                          <span className="text-lg font-bold text-slate-900">
-                           {formatVehiclePrice(vehicle, searchDuration)}
+                           {getDisplayPrice(vehicle, searchDuration)}
                          </span>
                          <span className="text-xs text-slate-500">
                            total for {searchDuration} days
@@ -167,7 +176,7 @@ export const RiderHome: React.FC = () => {
                        // Show Daily Rate
                        <div>
                          <span className="text-lg font-bold text-slate-900">
-                           {formatVehiclePrice(vehicle, 1)}
+                           {getDisplayPrice(vehicle, 1)}
                          </span>
                          <span className="text-xs text-slate-500"> / day</span>
                        </div>

@@ -1,13 +1,16 @@
+
 import React, { useEffect, useState } from 'react';
 import ApiService from '../services/api';
 import { Vehicle, VehicleStatus } from '../types';
 import { Button } from '../components/ui/Button';
 import { resolveImageUrl } from '../utils/image';
-import { formatVehiclePrice } from '../utils/price';
+import { getVehicleRawPrice, getVehicleCurrency } from '../utils/price';
+import { useCurrency } from '../context/CurrencyContext';
 
 export const Dashboard: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     const fetchVehicles = async () => {
@@ -38,6 +41,12 @@ export const Dashboard: React.FC = () => {
         {labels[status] || 'Unknown'}
       </span>
     );
+  };
+
+  const getPriceDisplay = (vehicle: Vehicle) => {
+    const price = getVehicleRawPrice(vehicle);
+    const currency = getVehicleCurrency(vehicle);
+    return formatPrice(price, currency);
   };
 
   return (
@@ -84,7 +93,7 @@ export const Dashboard: React.FC = () => {
                 <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
                   <div className="flex flex-col">
                     <span className="text-xs text-slate-500">Daily Rate</span>
-                    <span className="font-bold text-slate-900">{formatVehiclePrice(vehicle)}</span>
+                    <span className="font-bold text-slate-900">{getPriceDisplay(vehicle)}</span>
                   </div>
                   <Button variant="outline" size="sm">Manage</Button>
                 </div>

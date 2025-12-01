@@ -91,6 +91,12 @@ export interface Reservation {
   vehicle?: Vehicle;
 }
 
+export interface Currency {
+  currency: string;
+  symbol: string;
+  name: string;
+}
+
 export interface LoginResponse extends Token {}
 
 export interface ApiError {

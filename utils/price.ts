@@ -1,3 +1,4 @@
+
 import { Vehicle } from '../types';
 
 /**
@@ -32,21 +33,9 @@ export const getVehicleCurrency = (vehicle: Vehicle): string => {
 };
 
 /**
- * Formats the vehicle price for display.
- * If days > 1, returns the Total Price.
- * Otherwise returns the Daily Rate.
+ * Calculates the total price value.
  */
-export const formatVehiclePrice = (vehicle: Vehicle, days: number = 1): string => {
+export const calculatePriceValue = (vehicle: Vehicle, days: number = 1): number => {
   const rawPrice = getVehicleRawPrice(vehicle);
-  const currencyCode = getVehicleCurrency(vehicle);
-  
-  // Calculate total if specific days are requested, otherwise default to 1 day (daily rate)
-  const totalAmount = rawPrice * (days > 0 ? days : 1);
-
-  const formattedAmount = (totalAmount || 0).toLocaleString('en-US', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2
-  });
-
-  return `${currencyCode} ${formattedAmount}`.trim();
+  return rawPrice * (days > 0 ? days : 1);
 };

@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { CurrencyProvider } from './context/CurrencyContext';
 import { Navbar } from './components/Navbar';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
@@ -40,36 +42,38 @@ const HomeRedirect = () => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <HashRouter>
-        <div className="min-h-screen bg-slate-50">
-          <Navbar />
-          <Routes>
-            <Route path={ROUTES.HOME} element={<HomeRedirect />} />
-            <Route path={ROUTES.LOGIN} element={<Login />} />
-            
-            <Route 
-              path={ROUTES.DASHBOARD} 
-              element={
-                <ProtectedRoute roles={[RoleEnum.OWNER]}>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path={ROUTES.SEARCH} 
-              element={
-                <RiderHome />
-              } 
-            />
-            
-            <Route path="/vehicle/:id" element={<VehicleDetails />} />
+      <CurrencyProvider>
+        <HashRouter>
+          <div className="min-h-screen bg-slate-50">
+            <Navbar />
+            <Routes>
+              <Route path={ROUTES.HOME} element={<HomeRedirect />} />
+              <Route path={ROUTES.LOGIN} element={<Login />} />
+              
+              <Route 
+                path={ROUTES.DASHBOARD} 
+                element={
+                  <ProtectedRoute roles={[RoleEnum.OWNER]}>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path={ROUTES.SEARCH} 
+                element={
+                  <RiderHome />
+                } 
+              />
+              
+              <Route path="/vehicle/:id" element={<VehicleDetails />} />
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
-          </Routes>
-        </div>
-      </HashRouter>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
+            </Routes>
+          </div>
+        </HashRouter>
+      </CurrencyProvider>
     </AuthProvider>
   );
 };

@@ -1,7 +1,6 @@
 
-
 import { API_BASE_URL } from '../constants';
-import { Token, UserPublic, RoleEnum, Vehicle, VehicleStatus } from '../types';
+import { Token, UserPublic, RoleEnum, Vehicle, VehicleStatus, Currency } from '../types';
 
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -13,6 +12,16 @@ interface FetchOptions {
 }
 
 // Mock Data for fallback when backend is unavailable
+const MOCK_CURRENCIES: Currency[] = [
+  { currency: "USD", symbol: "U+0024", name: "US Dollar" },
+  { currency: "EUR", symbol: "U+20AC", name: "Euro" },
+  { currency: "GBP", symbol: "U+00A3", name: "U.K. Pound Sterling" },
+  { currency: "RUB", symbol: "U+20BD", name: "Russian Ruble" },
+  { currency: "THB", symbol: "U+0E3F", name: "Thai Baht" },
+  { currency: "VND", symbol: "U+20AB", name: "Vietnamese Dong" },
+  { currency: "IDR", symbol: "U+20A6", name: "Indonesian Rupiah" }
+];
+
 const MOCK_VEHICLES: Vehicle[] = [
   {
     id: 'v-1',
@@ -216,6 +225,11 @@ class ApiService {
                 : 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
         };
         return mockUser as unknown as T;
+    }
+
+    // --- Currency Endpoint ---
+    if (endpoint.includes('/utils/currencies/')) {
+        return MOCK_CURRENCIES as unknown as T;
     }
 
     // --- Vehicle Search for Rider (Specific) ---
