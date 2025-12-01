@@ -1,20 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ApiService from '../services/api';
 import { Vehicle } from '../types';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { resolveImageUrl } from '../utils/image';
-import { formatVehiclePrice } from '../utils/price';
+import { formatVehiclePrice, getVehicleRawPrice, getVehicleCurrency } from '../utils/price';
 
 export const RiderHome: React.FC = () => {
   const [location, setLocation] = useState('');
   const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [ownerId, setOwnerId] = useState('owner-1');
   const [searchResults, setSearchResults] = useState<Vehicle[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Calculate duration in days
+  const searchDuration = useMemo(() => {
+    if (!dateFrom || !dateTo) return 0;
+    const start = new Date(dateFrom);
+    const end = new Date(dateTo);
+    
+    // Calculate difference in milliseconds
+    const diffTime = end.getTime() - start.getTime();
+    // Convert to days (1000ms * 60s * 60m * 24h)
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Minimum 1 day if dates are same or invalid logic
+    return diffDays > 0 ? diffDays : 0;
+  }, [dateFrom, dateTo]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +69,7 @@ export const RiderHome: React.FC = () => {
              </p>
            </div>
            
-           <div className="mt-10 mx-auto max-w-4xl rounded-2xl bg-white p-2 shadow-xl">
+           <div className="mt-10 mx-auto max-w-5xl rounded-2xl bg-white p-2 shadow-xl">
              <form onSubmit={handleSearch} className="flex flex-col gap-2 md:flex-row md:items-end">
                <div className="flex-1 px-2 pb-2">
                  <Input 
@@ -63,7 +79,7 @@ export const RiderHome: React.FC = () => {
                    onChange={(e) => setOwnerId(e.target.value)}
                  />
                </div>
-               <div className="flex-1 px-2 pb-2">
+               <div className="flex-[1.5] px-2 pb-2">
                  <Input 
                    label="Location" 
                    placeholder="City, Airport, or Address" 
@@ -77,6 +93,15 @@ export const RiderHome: React.FC = () => {
                    type="date"
                    value={dateFrom}
                    onChange={(e) => setDateFrom(e.target.value)}
+                 />
+               </div>
+               <div className="flex-1 px-2 pb-2">
+                 <Input 
+                   label="Drop-off Date" 
+                   type="date"
+                   min={dateFrom} // Ensure drop-off is after pick-up
+                   value={dateTo}
+                   onChange={(e) => setDateTo(e.target.value)}
                  />
                </div>
                <div className="px-2 pb-2">
@@ -96,6 +121,11 @@ export const RiderHome: React.FC = () => {
              <h2 className="text-xl font-semibold text-slate-900">
                {isLoading ? 'Searching...' : `${searchResults.length} vehicles found`}
              </h2>
+             {searchDuration > 0 && !isLoading && (
+               <p className="text-sm text-slate-500">
+                 Showing total price for {searchDuration} day{searchDuration > 1 ? 's' : ''}
+               </p>
+             )}
            </div>
          )}
          
@@ -123,8 +153,25 @@ export const RiderHome: React.FC = () => {
                  </div>
                  <div className="mt-4 flex items-center justify-between">
                    <div>
-                     <span className="text-lg font-bold text-slate-900">{formatVehiclePrice(vehicle)}</span>
-                     <span className="text-xs text-slate-500"> / day</span>
+                     {searchDuration > 0 ? (
+                       // Show Total Price
+                       <div className="flex flex-col">
+                         <span className="text-lg font-bold text-slate-900">
+                           {formatVehiclePrice(vehicle, searchDuration)}
+                         </span>
+                         <span className="text-xs text-slate-500">
+                           total for {searchDuration} days
+                         </span>
+                       </div>
+                     ) : (
+                       // Show Daily Rate
+                       <div>
+                         <span className="text-lg font-bold text-slate-900">
+                           {formatVehiclePrice(vehicle, 1)}
+                         </span>
+                         <span className="text-xs text-slate-500"> / day</span>
+                       </div>
+                     )}
                    </div>
                    <Button size="sm" variant="primary" onClick={() => navigate(`/vehicle/${vehicle.id}`)}>Details</Button>
                  </div>
