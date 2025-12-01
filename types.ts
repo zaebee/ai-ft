@@ -1,4 +1,5 @@
 
+
 export enum RoleEnum {
   AUTO = "AUTO",
   ADMIN = "ADMIN",
@@ -149,4 +150,14 @@ export interface ExtraOption {
 
 export interface ListExtraOptionsResponse {
   extra_options: ExtraOption[];
+}
+
+export interface BookedDateRange {
+  start: string; // ISO Date
+  end: string;   // ISO Date
+  status: 'booked' | 'maintenance';
+}
+
+export interface AvailabilityResponse {
+  blocked_dates: BookedDateRange[];
 }

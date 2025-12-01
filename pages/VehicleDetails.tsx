@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import ApiService from '../services/api';
@@ -9,6 +10,7 @@ import { VehicleImageGallery } from '../components/VehicleImageGallery';
 import { getVehicleRawPrice, getVehicleCurrency } from '../utils/price';
 import { useCurrency } from '../context/CurrencyContext';
 import { ReservationForm } from '../components/ReservationForm';
+import { VehicleAvailabilityCalendar } from '../components/VehicleAvailabilityCalendar';
 
 export const VehicleDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -115,6 +117,14 @@ export const VehicleDetails: React.FC = () => {
                     initialDateFrom={dateFrom || ''} 
                     initialDateTo={dateTo || ''}
                 />
+            </div>
+            
+            {/* Availability Calendar */}
+            <div className="mb-8">
+              <VehicleAvailabilityCalendar 
+                vehicleId={vehicle.id} 
+                ownerId={vehicle.owner_id || ownerId || 'owner-1'} 
+              />
             </div>
 
             <div className="border-t border-slate-200 pt-6">

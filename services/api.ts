@@ -1,6 +1,7 @@
 
+
 import { API_BASE_URL } from '../constants';
-import { Token, UserPublic, RoleEnum, Vehicle, VehicleStatus, Currency, PriceConversion, Rate, RateResponse, ExtraOption, ExtraOptionPriceType } from '../types';
+import { Token, UserPublic, RoleEnum, Vehicle, VehicleStatus, Currency, PriceConversion, Rate, RateResponse, ExtraOption, ExtraOptionPriceType, AvailabilityResponse, BookedDateRange } from '../types';
 
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -286,6 +287,34 @@ class ApiService {
       return { extra_options: options } as unknown as T;
     }
 
+    // --- Vehicle Availability (Calendar) ---
+    if (endpoint.includes('/availability')) {
+        // e.g. /rider/vehicles/:ownerId/:vehicleId/availability
+        // Mock some busy dates relative to today
+        const today = new Date();
+        const nextWeek = new Date(today); nextWeek.setDate(today.getDate() + 7);
+        const nextWeekEnd = new Date(today); nextWeekEnd.setDate(today.getDate() + 10);
+        
+        const nextMonth = new Date(today); nextMonth.setDate(today.getDate() + 25);
+        const nextMonthEnd = new Date(today); nextMonthEnd.setDate(today.getDate() + 28);
+
+        const availability: AvailabilityResponse = {
+            blocked_dates: [
+                {
+                    start: nextWeek.toISOString(),
+                    end: nextWeekEnd.toISOString(),
+                    status: 'booked'
+                },
+                {
+                    start: nextMonth.toISOString(),
+                    end: nextMonthEnd.toISOString(),
+                    status: 'booked'
+                }
+            ]
+        };
+        return availability as unknown as T;
+    }
+
     // --- Vehicle Search for Rider (Specific) ---
     if (endpoint.includes('/rider/vehicles/') && endpoint.includes('/search')) {
        return { vehicles: MOCK_VEHICLES } as unknown as T;
@@ -295,7 +324,7 @@ class ApiService {
     // GET /rider/vehicles/:owner_id/:vehicle_id
     // This matches: /rider/vehicles/owner-1/v-1
     const riderVehicleMatch = endpoint.match(/\/rider\/vehicles\/([^\/]+)\/([^\/?]+)/);
-    if (method === 'GET' && riderVehicleMatch && !endpoint.includes('/search')) {
+    if (method === 'GET' && riderVehicleMatch && !endpoint.includes('/search') && !endpoint.includes('/availability')) {
         const vId = riderVehicleMatch[2];
         const vehicle = MOCK_VEHICLES.find(v => v.id === vId);
         if (vehicle) return { vehicle } as unknown as T;
