@@ -43,6 +43,13 @@ export interface Picture {
   extra_previews?: Record<string, { previews: ImagePreviews }>;
 }
 
+export interface PriceConversion {
+  amount: number;
+  currency: string;
+  rate: number;
+  valid_until: string;
+}
+
 export interface Vehicle {
   id: string;
   name: string;
@@ -50,6 +57,16 @@ export interface Vehicle {
   status: VehicleStatus;
   price: number;
   currency: string;
+  
+  // Detailed pricing fields
+  minimal_price?: number;
+  price_conversions?: Record<string, PriceConversion>;
+  minimal_price_conversions?: Record<string, PriceConversion>;
+  price_template_id?: string;
+  created_at?: string;
+  updated_at?: string;
+  extra_option_ids?: string[];
+
   picture?: Picture;
   general_info?: {
     brand?: string;

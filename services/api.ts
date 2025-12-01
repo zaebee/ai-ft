@@ -1,4 +1,5 @@
 
+
 import { API_BASE_URL } from '../constants';
 import { Token, UserPublic, RoleEnum, Vehicle, VehicleStatus } from '../types';
 
@@ -20,6 +21,9 @@ const MOCK_VEHICLES: Vehicle[] = [
     status: VehicleStatus.FREE,
     price: 120,
     currency: 'USD',
+    minimal_price: 120,
+    price_conversions: { USD: { amount: 120, currency: 'USD', rate: 1, valid_until: '' } },
+    minimal_price_conversions: { USD: { amount: 120, currency: 'USD', rate: 1, valid_until: '' } },
     picture: { 
       cover: 'https://images.unsplash.com/photo-1536700503339-1e4b06520771?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       cover_previews: {
@@ -50,6 +54,9 @@ const MOCK_VEHICLES: Vehicle[] = [
     status: VehicleStatus.COLLECTED,
     price: 350,
     currency: 'USD',
+    minimal_price: 350,
+    price_conversions: { USD: { amount: 350, currency: 'USD', rate: 1, valid_until: '' } },
+    minimal_price_conversions: { USD: { amount: 350, currency: 'USD', rate: 1, valid_until: '' } },
     picture: { 
       cover: 'https://images.unsplash.com/photo-1503376763036-066120622c74?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' 
     },
@@ -63,6 +70,9 @@ const MOCK_VEHICLES: Vehicle[] = [
     status: VehicleStatus.FREE,
     price: 200,
     currency: 'USD',
+    minimal_price: 200,
+    price_conversions: { USD: { amount: 200, currency: 'USD', rate: 1, valid_until: '' } },
+    minimal_price_conversions: { USD: { amount: 200, currency: 'USD', rate: 1, valid_until: '' } },
     picture: { 
       cover: 'https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' 
     },
@@ -76,6 +86,9 @@ const MOCK_VEHICLES: Vehicle[] = [
     status: VehicleStatus.FREE,
     price: 450,
     currency: 'USD',
+    minimal_price: 450,
+    price_conversions: { USD: { amount: 450, currency: 'USD', rate: 1, valid_until: '' } },
+    minimal_price_conversions: { USD: { amount: 450, currency: 'USD', rate: 1, valid_until: '' } },
     picture: { 
       cover: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' 
     },
@@ -89,6 +102,9 @@ const MOCK_VEHICLES: Vehicle[] = [
     status: VehicleStatus.MAINTENANCE,
     price: 280,
     currency: 'USD',
+    minimal_price: 280,
+    price_conversions: { USD: { amount: 280, currency: 'USD', rate: 1, valid_until: '' } },
+    minimal_price_conversions: { USD: { amount: 280, currency: 'USD', rate: 1, valid_until: '' } },
     picture: { 
       cover: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' 
     },

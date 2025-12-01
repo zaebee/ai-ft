@@ -3,6 +3,7 @@ import ApiService from '../services/api';
 import { Vehicle, VehicleStatus } from '../types';
 import { Button } from '../components/ui/Button';
 import { resolveImageUrl } from '../utils/image';
+import { formatVehiclePrice } from '../utils/price';
 
 export const Dashboard: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -83,7 +84,7 @@ export const Dashboard: React.FC = () => {
                 <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
                   <div className="flex flex-col">
                     <span className="text-xs text-slate-500">Daily Rate</span>
-                    <span className="font-bold text-slate-900">{vehicle.currency} {vehicle.price}</span>
+                    <span className="font-bold text-slate-900">{formatVehiclePrice(vehicle)}</span>
                   </div>
                   <Button variant="outline" size="sm">Manage</Button>
                 </div>

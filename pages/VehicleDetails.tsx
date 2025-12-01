@@ -6,6 +6,7 @@ import { Vehicle } from '../types';
 import { Button } from '../components/ui/Button';
 import { MOCK_IMAGES } from '../constants';
 import { VehicleImageGallery } from '../components/VehicleImageGallery';
+import { formatVehiclePrice } from '../utils/price';
 
 export const VehicleDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -70,7 +71,7 @@ export const VehicleDetails: React.FC = () => {
             <div className="mt-3">
               <h2 className="sr-only">Product information</h2>
               <p className="text-3xl tracking-tight text-slate-900 font-medium">
-                {vehicle.currency} {vehicle.price} 
+                {formatVehiclePrice(vehicle)} 
                 <span className="text-lg text-slate-500 font-normal"> / day</span>
               </p>
             </div>

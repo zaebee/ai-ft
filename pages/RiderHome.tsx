@@ -5,6 +5,7 @@ import { Vehicle } from '../types';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { resolveImageUrl } from '../utils/image';
+import { formatVehiclePrice } from '../utils/price';
 
 export const RiderHome: React.FC = () => {
   const [location, setLocation] = useState('');
@@ -122,7 +123,7 @@ export const RiderHome: React.FC = () => {
                  </div>
                  <div className="mt-4 flex items-center justify-between">
                    <div>
-                     <span className="text-lg font-bold text-slate-900">{vehicle.currency} {vehicle.price}</span>
+                     <span className="text-lg font-bold text-slate-900">{formatVehiclePrice(vehicle)}</span>
                      <span className="text-xs text-slate-500"> / day</span>
                    </div>
                    <Button size="sm" variant="primary" onClick={() => navigate(`/vehicle/${vehicle.id}`)}>Details</Button>
