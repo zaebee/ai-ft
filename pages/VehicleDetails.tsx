@@ -1,10 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ApiService from '../services/api';
 import { Vehicle } from '../types';
 import { Button } from '../components/ui/Button';
 import { MOCK_IMAGES } from '../constants';
-import { ROUTES } from '../constants';
+import { VehicleImageGallery } from '../components/VehicleImageGallery';
 
 export const VehicleDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -58,12 +59,8 @@ export const VehicleDetails: React.FC = () => {
 
         <div className="lg:grid lg:grid-cols-2 lg:gap-x-8">
           {/* Image Gallery */}
-          <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-200">
-            <img
-              src={vehicle.picture?.cover || MOCK_IMAGES.CAR_PLACEHOLDER}
-              alt={vehicle.name}
-              className="h-full w-full object-cover"
-            />
+          <div>
+            <VehicleImageGallery picture={vehicle.picture} altText={vehicle.name} />
           </div>
 
           {/* Vehicle Info */}

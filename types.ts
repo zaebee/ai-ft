@@ -1,3 +1,4 @@
+
 export enum RoleEnum {
   AUTO = "AUTO",
   ADMIN = "ADMIN",
@@ -27,6 +28,21 @@ export interface UserPublic {
   avatar?: string | null;
 }
 
+export interface ImagePreviews {
+  xs?: string;
+  s?: string;
+  m?: string;
+  l?: string;
+  [key: string]: string | undefined;
+}
+
+export interface Picture {
+  cover?: string;
+  extra?: string[];
+  cover_previews?: ImagePreviews;
+  extra_previews?: Record<string, { previews: ImagePreviews }>;
+}
+
 export interface Vehicle {
   id: string;
   name: string;
@@ -34,9 +50,7 @@ export interface Vehicle {
   status: VehicleStatus;
   price: number;
   currency: string;
-  picture?: {
-    cover?: string;
-  };
+  picture?: Picture;
   general_info?: {
     brand?: string;
     model?: string;

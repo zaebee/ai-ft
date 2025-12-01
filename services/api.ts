@@ -1,3 +1,4 @@
+
 import { API_BASE_URL } from '../constants';
 import { Token, UserPublic, RoleEnum, Vehicle, VehicleStatus } from '../types';
 
@@ -19,7 +20,26 @@ const MOCK_VEHICLES: Vehicle[] = [
     status: VehicleStatus.FREE,
     price: 120,
     currency: 'USD',
-    picture: { cover: 'https://images.unsplash.com/photo-1536700503339-1e4b06520771?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+    picture: { 
+      cover: 'https://images.unsplash.com/photo-1536700503339-1e4b06520771?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      cover_previews: {
+        xs: 'https://images.unsplash.com/photo-1536700503339-1e4b06520771?ixlib=rb-4.0.3&auto=format&fit=crop&w=320&q=60',
+        s: 'https://images.unsplash.com/photo-1536700503339-1e4b06520771?ixlib=rb-4.0.3&auto=format&fit=crop&w=640&q=80',
+        m: 'https://images.unsplash.com/photo-1536700503339-1e4b06520771?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80'
+      },
+      extra: [
+        'https://images.unsplash.com/photo-1560958089-b8a1929cea89?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1563720223185-11003d516935?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+      ],
+      extra_previews: {
+        'https://images.unsplash.com/photo-1560958089-b8a1929cea89?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80': {
+          previews: { xs: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?ixlib=rb-4.0.3&auto=format&fit=crop&w=320&q=60' }
+        },
+        'https://images.unsplash.com/photo-1563720223185-11003d516935?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80': {
+           previews: { xs: 'https://images.unsplash.com/photo-1563720223185-11003d516935?ixlib=rb-4.0.3&auto=format&fit=crop&w=320&q=60' }
+        }
+      }
+    },
     general_info: { brand: 'Tesla', model: 'Model 3', year: 2023, color: 'White' },
     specification_info: { transmission: 'Automatic', fuel_type: 'Electric', number_of_seats: 5 }
   },
@@ -30,7 +50,9 @@ const MOCK_VEHICLES: Vehicle[] = [
     status: VehicleStatus.COLLECTED,
     price: 350,
     currency: 'USD',
-    picture: { cover: 'https://images.unsplash.com/photo-1503376763036-066120622c74?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+    picture: { 
+      cover: 'https://images.unsplash.com/photo-1503376763036-066120622c74?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' 
+    },
     general_info: { brand: 'Porsche', model: '911', year: 2022, color: 'Black' },
     specification_info: { transmission: 'Automatic', fuel_type: 'Petrol', number_of_seats: 2 }
   },
@@ -41,7 +63,9 @@ const MOCK_VEHICLES: Vehicle[] = [
     status: VehicleStatus.FREE,
     price: 200,
     currency: 'USD',
-    picture: { cover: 'https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+    picture: { 
+      cover: 'https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' 
+    },
     general_info: { brand: 'Land Rover', model: 'Range Rover', year: 2023, color: 'Grey' },
     specification_info: { transmission: 'Automatic', fuel_type: 'Hybrid', number_of_seats: 5 }
   },
@@ -52,7 +76,9 @@ const MOCK_VEHICLES: Vehicle[] = [
     status: VehicleStatus.FREE,
     price: 450,
     currency: 'USD',
-    picture: { cover: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+    picture: { 
+      cover: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' 
+    },
     general_info: { brand: 'Mercedes-Benz', model: 'G 63 AMG', year: 2022, color: 'Black' },
     specification_info: { transmission: 'Automatic', fuel_type: 'Petrol', number_of_seats: 5 }
   },
@@ -63,7 +89,9 @@ const MOCK_VEHICLES: Vehicle[] = [
     status: VehicleStatus.MAINTENANCE,
     price: 280,
     currency: 'USD',
-    picture: { cover: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+    picture: { 
+      cover: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' 
+    },
     general_info: { brand: 'BMW', model: 'M4', year: 2024, color: 'Green' },
     specification_info: { transmission: 'Automatic', fuel_type: 'Petrol', number_of_seats: 4 }
   }
