@@ -1,9 +1,11 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import ApiService from '../services/api';
-import { Currency } from '../types';
+import { Currency, Rate, RateResponse } from '../types';
 
 interface CurrencyContextType {
   currencies: Currency[];
+  rates: Rate[];
   isLoading: boolean;
   selectedCurrency: string;
   setCurrency: (code: string) => void;
@@ -15,23 +17,29 @@ const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined
 
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [rates, setRates] = useState<Rate[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedCurrency, setSelectedCurrency] = useState<string>(() => {
     return localStorage.getItem('user_currency') || 'USD';
   });
 
   useEffect(() => {
-    const fetchCurrencies = async () => {
+    const fetchData = async () => {
       try {
-        const data = await ApiService.get<Currency[]>('/utils/currencies/');
-        setCurrencies(data || []);
+        const [currenciesData, ratesData] = await Promise.all([
+            ApiService.get<Currency[]>('/utils/currencies/'),
+            ApiService.get<RateResponse>('/utils/rates/')
+        ]);
+        
+        setCurrencies(currenciesData || []);
+        setRates(ratesData?.rates || []);
       } catch (error) {
-        console.error("Failed to fetch currencies", error);
+        console.error("Failed to fetch currency data", error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchCurrencies();
+    fetchData();
   }, []);
 
   const setCurrency = (code: string) => {
@@ -77,7 +85,8 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   return (
     <CurrencyContext.Provider value={{ 
-      currencies, 
+      currencies,
+      rates, 
       isLoading, 
       selectedCurrency, 
       setCurrency, 

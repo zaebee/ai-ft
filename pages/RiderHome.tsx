@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ApiService from '../services/api';
@@ -17,7 +18,7 @@ export const RiderHome: React.FC = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { formatPrice, selectedCurrency } = useCurrency();
+  const { formatPrice, selectedCurrency, rates } = useCurrency();
 
   // Calculate duration in days
   const searchDuration = useMemo(() => {
@@ -51,8 +52,8 @@ export const RiderHome: React.FC = () => {
   };
 
   const getDisplayPrice = (vehicle: Vehicle, days: number = 1) => {
-    const total = calculatePriceValue(vehicle, days, selectedCurrency);
-    const currency = getVehicleCurrency(vehicle, selectedCurrency);
+    const total = calculatePriceValue(vehicle, days, selectedCurrency, rates);
+    const currency = getVehicleCurrency(vehicle, selectedCurrency, rates);
     return formatPrice(total, currency);
   };
 

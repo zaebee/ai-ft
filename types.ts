@@ -97,6 +97,34 @@ export interface Currency {
   name: string;
 }
 
+export interface Rate {
+  base_currency: string;
+  target_currency: string;
+  rate: number;
+  inverse_rate: number;
+  timestamp: string;
+  symbol: string;
+  name: string;
+}
+
+export interface RateResponse {
+  rates: Rate[];
+}
+
+export interface SelectedExtraOptions {
+  ids: string[];
+}
+
+export interface CreateReservationRequest {
+  vehicle_id: string;
+  rider_id: string;
+  date_from: string;
+  date_to: string;
+  pick_up_time?: string;
+  drop_off_time?: string;
+  selected_extra_options?: SelectedExtraOptions;
+}
+
 export interface LoginResponse extends Token {}
 
 export interface ApiError {

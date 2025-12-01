@@ -1,6 +1,6 @@
 
 import { API_BASE_URL } from '../constants';
-import { Token, UserPublic, RoleEnum, Vehicle, VehicleStatus, Currency, PriceConversion } from '../types';
+import { Token, UserPublic, RoleEnum, Vehicle, VehicleStatus, Currency, PriceConversion, Rate, RateResponse } from '../types';
 
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -22,28 +22,34 @@ const MOCK_CURRENCIES: Currency[] = [
   { currency: "IDR", symbol: "U+20A6", name: "Indonesian Rupiah" }
 ];
 
+const MOCK_RATES: Rate[] = [
+  { base_currency: "USD", target_currency: "EUR", rate: 0.86369, inverse_rate: 1.1578, timestamp: new Date().toISOString(), symbol: "U+20AC", name: "Euro" },
+  { base_currency: "USD", target_currency: "GBP", rate: 0.75620, inverse_rate: 1.3223, timestamp: new Date().toISOString(), symbol: "U+00A3", name: "U.K. Pound Sterling" },
+  { base_currency: "USD", target_currency: "IDR", rate: 16655.8, inverse_rate: 0.00006, timestamp: new Date().toISOString(), symbol: "U+20A6", name: "Indonesian Rupiah" },
+  { base_currency: "USD", target_currency: "THB", rate: 32.1861, inverse_rate: 0.03106, timestamp: new Date().toISOString(), symbol: "U+0E3F", name: "Thai Baht" },
+  { base_currency: "USD", target_currency: "VND", rate: 26370.7, inverse_rate: 0.00003, timestamp: new Date().toISOString(), symbol: "U+20AB", name: "Vietnamese Dong" },
+  { base_currency: "USD", target_currency: "RUB", rate: 77.6747, inverse_rate: 0.01287, timestamp: new Date().toISOString(), symbol: "U+20BD", name: "Russian Ruble" },
+  { base_currency: "EUR", target_currency: "USD", rate: 1.1578, inverse_rate: 0.86369, timestamp: new Date().toISOString(), symbol: "U+0024", name: "US Dollar" }
+];
+
 // Helper to generate conversions for mock data
 const generateMockConversions = (basePrice: number): Record<string, PriceConversion> => {
-  const rates: Record<string, number> = {
-    USD: 1,
-    EUR: 0.92,
-    GBP: 0.79,
-    RUB: 92.5,
-    THB: 35.5,
-    VND: 24500,
-    IDR: 15600
-  };
-
   const conversions: Record<string, PriceConversion> = {};
   
-  Object.keys(rates).forEach(code => {
-    conversions[code] = {
-      amount: Math.round(basePrice * rates[code]),
-      currency: code,
-      rate: rates[code],
-      valid_until: new Date(Date.now() + 86400000).toISOString()
-    };
+  // Use MOCK_RATES for generation if available, matching simplified logic
+  MOCK_RATES.forEach(rate => {
+      if (rate.base_currency === 'USD') {
+          conversions[rate.target_currency] = {
+              amount: Math.round(basePrice * rate.rate),
+              currency: rate.target_currency,
+              rate: rate.rate,
+              valid_until: new Date(Date.now() + 86400000).toISOString()
+          };
+      }
   });
+
+  // Always add base
+  conversions['USD'] = { amount: basePrice, currency: 'USD', rate: 1, valid_until: new Date().toISOString() };
   
   return conversions;
 };
@@ -253,16 +259,16 @@ class ApiService {
         return mockUser as unknown as T;
     }
 
-    // --- Currency Endpoint ---
+    // --- Currency/Rates Endpoints ---
     if (endpoint.includes('/utils/currencies/')) {
         return MOCK_CURRENCIES as unknown as T;
+    }
+    if (endpoint.includes('/utils/rates/')) {
+        return { rates: MOCK_RATES } as unknown as T;
     }
 
     // --- Vehicle Search for Rider (Specific) ---
     if (endpoint.includes('/rider/vehicles/') && endpoint.includes('/search')) {
-       // Filter vehicles by owner if needed, but for mock assume we return all or specific subset
-       // Extract owner_id from path if necessary, e.g. /rider/vehicles/owner-1/search
-       // For this demo, we just return the mock list
        return { vehicles: MOCK_VEHICLES } as unknown as T;
     }
 
@@ -273,7 +279,7 @@ class ApiService {
         if (method === 'GET' && vehicleIdMatch) {
              const vId = vehicleIdMatch[1];
              if (vId === 'archive' || vId === 'status-summary' || vId === 'delete-drafts') {
-                 // handle other sub-resources if needed, for now ignore or implement specific mocks
+                 // handle other sub-resources if needed
              } else {
                  const vehicle = MOCK_VEHICLES.find(v => v.id === vId);
                  if (vehicle) {
@@ -306,8 +312,8 @@ class ApiService {
                     vehicle_id: body.vehicle_id,
                     date_from: body.date_from,
                     date_to: body.date_to,
-                    total_price: 1000, // Dummy total
-                    status: 0 // Created
+                    total_price: 1000, 
+                    status: 0 
                 }
             } as unknown as T;
         }

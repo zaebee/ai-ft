@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ApiService from '../services/api';
@@ -7,6 +8,7 @@ import { MOCK_IMAGES } from '../constants';
 import { VehicleImageGallery } from '../components/VehicleImageGallery';
 import { getVehicleRawPrice, getVehicleCurrency } from '../utils/price';
 import { useCurrency } from '../context/CurrencyContext';
+import { ReservationForm } from '../components/ReservationForm';
 
 export const VehicleDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,7 +16,7 @@ export const VehicleDetails: React.FC = () => {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { formatPrice, selectedCurrency } = useCurrency();
+  const { formatPrice, selectedCurrency, rates } = useCurrency();
 
   useEffect(() => {
     const fetchVehicle = async () => {
@@ -34,8 +36,8 @@ export const VehicleDetails: React.FC = () => {
   }, [id]);
 
   const getPriceDisplay = (v: Vehicle) => {
-    const price = getVehicleRawPrice(v, selectedCurrency);
-    const currency = getVehicleCurrency(v, selectedCurrency);
+    const price = getVehicleRawPrice(v, selectedCurrency, rates);
+    const currency = getVehicleCurrency(v, selectedCurrency, rates);
     return formatPrice(price, currency);
   };
 
@@ -67,15 +69,15 @@ export const VehicleDetails: React.FC = () => {
 
         <div className="lg:grid lg:grid-cols-2 lg:gap-x-8">
           {/* Image Gallery */}
-          <div>
+          <div className="mb-8 lg:mb-0">
             <VehicleImageGallery picture={vehicle.picture} altText={vehicle.name} />
           </div>
 
           {/* Vehicle Info */}
-          <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
+          <div className="px-4 sm:px-0">
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">{vehicle.name}</h1>
             
-            <div className="mt-3">
+            <div className="mt-3 mb-6">
               <h2 className="sr-only">Product information</h2>
               <p className="text-3xl tracking-tight text-slate-900 font-medium">
                 {getPriceDisplay(vehicle)} 
@@ -83,7 +85,12 @@ export const VehicleDetails: React.FC = () => {
               </p>
             </div>
 
-            <div className="mt-6 border-t border-slate-200 pt-6">
+            {/* Reservation Form */}
+            <div className="mb-8">
+                <ReservationForm vehicle={vehicle} />
+            </div>
+
+            <div className="border-t border-slate-200 pt-6">
               <h3 className="text-lg font-medium text-slate-900">Specifications</h3>
               <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3">
                 <div>
@@ -127,13 +134,6 @@ export const VehicleDetails: React.FC = () => {
                     <p className="text-xs text-slate-500">Joined in 2023</p>
                  </div>
                </div>
-            </div>
-
-            <div className="mt-10">
-              <Button size="lg" className="w-full text-lg h-14" onClick={() => alert('Reservation flow coming soon!')}>
-                Reserve this vehicle
-              </Button>
-              <p className="mt-2 text-center text-xs text-slate-500">You won't be charged yet</p>
             </div>
           </div>
         </div>

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import ApiService from '../services/api';
 import { Vehicle, VehicleStatus } from '../types';
@@ -9,7 +10,7 @@ import { useCurrency } from '../context/CurrencyContext';
 export const Dashboard: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { formatPrice, selectedCurrency } = useCurrency();
+  const { formatPrice, selectedCurrency, rates } = useCurrency();
 
   useEffect(() => {
     const fetchVehicles = async () => {
@@ -43,8 +44,8 @@ export const Dashboard: React.FC = () => {
   };
 
   const getPriceDisplay = (vehicle: Vehicle) => {
-    const price = getVehicleRawPrice(vehicle, selectedCurrency);
-    const currency = getVehicleCurrency(vehicle, selectedCurrency);
+    const price = getVehicleRawPrice(vehicle, selectedCurrency, rates);
+    const currency = getVehicleCurrency(vehicle, selectedCurrency, rates);
     return formatPrice(price, currency);
   };
 
